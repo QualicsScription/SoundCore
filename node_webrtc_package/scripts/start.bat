@@ -24,16 +24,19 @@ if exist ".env" (
 )
 endlocal & set "PORT=%PORT%" & set "NGROK_AUTHTOKEN=%NGROK_AUTHTOKEN%" & set "NGROK_DOMAIN=%NGROK_DOMAIN%"
 
-where ngrok >nul 2>&1
+set "NGROK_EXE=ngrok"
+if exist ".\ngrok.exe" set "NGROK_EXE=.\ngrok.exe"
+
+where %NGROK_EXE% >nul 2>&1
 if %errorlevel%==0 (
   set "DISABLE_AUTO_NGROK=1"
   if not "%NGROK_AUTHTOKEN%"=="" (
-    ngrok config add-authtoken %NGROK_AUTHTOKEN%
+    %NGROK_EXE% config add-authtoken %NGROK_AUTHTOKEN%
   )
-  start "ngrok" cmd /c ngrok http --domain=%NGROK_DOMAIN% %PORT%
+  start "ngrok" cmd /c %NGROK_EXE% http --domain=%NGROK_DOMAIN% %PORT%
   node server.js
 ) else (
-  echo ngrok CLI bulunamadi. server.js icindeki auto-ngrok kullanilacak.
+  echo ngrok CLI bulunamadi. Tünel baslatilmadi; sunucu localde calisiyor: http://0.0.0.0:%PORT%
   node server.js
 )
 
