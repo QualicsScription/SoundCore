@@ -95,13 +95,19 @@ async def test_websocket_signaling():
     
     print("=== FastAPI WebSocket Signaling Test ===")
     
-    # Get WebSocket URL
-    ws_url = get_backend_url()
-    if not ws_url:
+    # Try local backend first, then external
+    local_ws_url = get_local_backend_url()
+    external_ws_url = get_backend_url()
+    
+    if not external_ws_url:
         print("❌ FAILED: Could not determine WebSocket URL from frontend .env")
         return False
     
-    print(f"Testing WebSocket URL: {ws_url}")
+    print(f"Testing local WebSocket URL: {local_ws_url}")
+    print(f"External WebSocket URL: {external_ws_url}")
+    
+    # Try local first
+    ws_url = local_ws_url
     
     # Initialize test clients
     client_a = WebSocketTestClient("Alice", ws_url)
