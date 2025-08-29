@@ -147,7 +147,7 @@ metadata:
 
 test_plan:
   current_focus:
-    - "Backend WebSocket handshake and message routing"
+    - "Frontend testing completed successfully"
   stuck_tasks: []
   test_all: false
   test_priority: "high_first"
