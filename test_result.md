@@ -101,3 +101,48 @@
 #====================================================================================================
 # Testing Data - Main Agent and testing sub agent both should log testing data below this section
 #====================================================================================================
+
+user_problem_statement: "Build minimalist voice chat + text messaging (WebRTC + WebSocket/Socket.IO). Provide FastAPI+React version here and a Node.js package targeting https://hyena-close-purely.ngrok-free.app/."
+
+backend:
+  - task: "Add FastAPI WebSocket signaling at /api/ws with rooms and signaling messages (offer/answer/ice, text)"
+    implemented: true
+    working: "NA"
+    file: "/app/backend/server.py"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: true
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implemented WebSocket endpoint /api/ws with room/user management, broadcast, and signaling relay."
+
+frontend:
+  - task: "React UI with join room, VU meters, mute, chat; connects to /api/ws via REACT_APP_BACKEND_URL"
+    implemented: true
+    working: "NA"
+    file: "/app/frontend/src/App.js"
+    stuck_count: 0
+    priority: "high"
+    needs_retesting: false
+    status_history:
+      - working: true
+        agent: "main"
+        comment: "Implemented functional UI with WebRTC mesh and chat, deriving ws URL from env (no hardcoding)."
+
+metadata:
+  created_by: "main_agent"
+  version: "1.0"
+  test_sequence: 1
+  run_ui: false
+
+test_plan:
+  current_focus:
+    - "Backend WebSocket handshake and message routing"
+  stuck_tasks: []
+  test_all: false
+  test_priority: "high_first"
+
+agent_communication:
+  - agent: "main"
+    message: "Please test /api/ws WebSocket: join -> receive joined with selfId and peers; offer/answer/ice message relay between two simulated clients; text broadcast within room; disconnect cleanup."
