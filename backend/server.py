@@ -217,6 +217,13 @@ async def websocket_endpoint(websocket: WebSocket):
         except Exception:
             pass
 
+@app.on_event("startup")
+async def startup_event():
+    logger.info("FastAPI application starting up...")
+    logger.info("Available routes:")
+    for route in app.routes:
+        logger.info(f"  {route}")
+
 @app.on_event("shutdown")
 async def shutdown_db_client():
     client.close()
