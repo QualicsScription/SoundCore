@@ -2,14 +2,17 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import './App.css';
 
 // Helper: build WS URL from REACT_APP_BACKEND_URL without hardcoding
+function getBackendBase() {
+  return (import.meta?.env?.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+}
 function buildWsUrl() {
-  const base = (import.meta?.env?.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+  const base = getBackendBase();
   if (!base) return '';
   const wsBase = base.startsWith('https') ? base.replace('https', 'wss') : base.replace('http', 'ws');
   return `${wsBase}/ws`;
 }
 
-const iceServers = [
+const defaultIce = [
   { urls: ['stun:stun.l.google.com:19302', 'stun:global.stun.twilio.com:3478'] }
 ];
 
@@ -22,6 +25,7 @@ function App() {
   const [messages, setMessages] = useState([]);
   const [msgText, setMsgText] = useState('');
   const [muted, setMuted] = useState(false);
+  const [iceServers, setIceServers] = useState(defaultIce);
 
   const wsRef = useRef(null);
   const pcMapRef = useRef(new Map()); // peerId -> RTCPeerConnection
@@ -31,6 +35,22 @@ function App() {
   const rafRef = useRef(null);
 
   const wsUrl = useMemo(() => buildWsUrl(), []);
+  const backendBase = useMemo(() => getBackendBase(), []);
+
+  useEffect(() => {
+    // Try to fetch ICE servers from backend /api/ice
+    const fetchIce = async () => {
+      if (!backendBase) return;
+      try {
+        const res = await fetch(`${backendBase}/ice`, { credentials: 'include' });
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.iceServers)) setIceServers(data.iceServers);
+        }
+      } catch {}
+    };
+    fetchIce();
+  }, [backendBase]);
 
   const stopLevelsLoop = () => {
     if (rafRef.current) cancelAnimationFrame(rafRef.current);
@@ -115,7 +135,7 @@ function App() {
     })();
 
     return pc;
-  }, [selfId]);
+  }, [selfId, iceServers]);
 
   const handleWsMessage = useCallback(async (ev) => {
     const msg = JSON.parse(ev.data);

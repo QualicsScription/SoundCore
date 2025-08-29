@@ -59,6 +59,40 @@ async def get_status_checks():
     status_checks = await db.status_checks.find().to_list(1000)
     return [StatusCheck(**status_check) for status_check in status_checks]
 
+# Optional ICE servers endpoint for clients to fetch TURN/STUN from env
+@api_router.get("/ice")
+async def ice_config():
+    # Env options (comma-separated URLs for STUN/TURN)
+    # Example:
+    # STUN_URLS=stun:stun.l.google.com:19302,stun:global.stun.twilio.com:3478
+    # TURN_URLS=turn:turn.example.com:3478
+    # TURN_USERNAME=user
+    # TURN_CREDENTIAL=pass
+    stun_urls = os.environ.get("STUN_URLS", "").strip()
+    turn_urls = os.environ.get("TURN_URLS", "").strip()
+    turn_username = os.environ.get("TURN_USERNAME", "").strip()
+    turn_credential = os.environ.get("TURN_CREDENTIAL", "").strip()
+
+    ice_servers: List[Dict[str, Any]] = []
+    if stun_urls:
+        ice_servers.append({"urls": [u.strip() for u in stun_urls.split(',') if u.strip()]})
+    else:
+        # Default STUN
+        ice_servers.append({"urls": [
+            "stun:stun.l.google.com:19302",
+            "stun:global.stun.twilio.com:3478"
+        ]})
+
+    if turn_urls:
+        entry: Dict[str, Any] = {"urls": [u.strip() for u in turn_urls.split(',') if u.strip()]}
+        if turn_username:
+            entry["username"] = turn_username
+        if turn_credential:
+            entry["credential"] = turn_credential
+        ice_servers.append(entry)
+
+    return {"iceServers": ice_servers}
+
 # Include the router in the main app
 app.include_router(api_router)
 
