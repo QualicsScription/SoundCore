@@ -104,7 +104,7 @@ async def broadcast_room(room: str, data: Dict[str, Any], exclude: Set[str] | No
     for uid, ws in targets:
         await send_json(ws, data)
 
-@api_router.websocket("/ws")
+@app.websocket("/api/ws")
 async def websocket_endpoint(websocket: WebSocket):
     # Accept connection
     await websocket.accept()
