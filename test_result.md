@@ -149,3 +149,5 @@ test_plan:
 agent_communication:
   - agent: "main"
     message: "Please test /api/ws WebSocket: join -> receive joined with selfId and peers; offer/answer/ice message relay between two simulated clients; text broadcast within room; disconnect cleanup."
+  - agent: "testing"
+    message: "✅ WebSocket testing completed successfully! All 7 test scenarios passed: 1) WebSocket connection established, 2) Room joining with proper peer notifications, 3) Signaling message exchange (offer/answer/ice-candidate), 4) Text chat broadcasting, 5) Disconnect handling with leave notifications, 6) JSON validation. Fixed minor issue: WebSocket route was registered on api_router instead of main app - moved to @app.websocket('/api/ws'). Backend WebSocket signaling is fully functional."
