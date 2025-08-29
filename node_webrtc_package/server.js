@@ -4,6 +4,7 @@
   Notes:
   - Run locally: PORT=3000 node server.js
   - ngrok tunnel is started automatically if NGROK_AUTHTOKEN and NGROK_DOMAIN are provided in .env
+  - To disable auto-ngrok (when using CLI ngrok), set DISABLE_AUTO_NGROK=1
 */
 
 const express = require('express');
@@ -22,6 +23,7 @@ const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
 const NGROK_TOKEN = process.env.NGROK_AUTHTOKEN;
 const NGROK_DOMAIN = process.env.NGROK_DOMAIN || 'hyena-close-purely.ngrok-free.app';
+const DISABLE_AUTO_NGROK = process.env.DISABLE_AUTO_NGROK === '1';
 
 const app = express();
 app.use(helmet());
@@ -97,8 +99,7 @@ io.on('connection', (socket) => {
 
 server.listen(PORT, HOST, async () => {
   console.log(`Signaling server listening on http://${HOST}:${PORT}`);
-  // Auto-start ngrok tunnel if token provided
-  if (NGROK_TOKEN && NGROK_DOMAIN) {
+  if (!DISABLE_AUTO_NGROK && NGROK_TOKEN && NGROK_DOMAIN) {
     try {
       await ngrok.authtoken(NGROK_TOKEN);
       const url = await ngrok.connect({
@@ -111,5 +112,7 @@ server.listen(PORT, HOST, async () => {
     } catch (e) {
       console.error('Failed to start ngrok tunnel automatically:', e);
     }
+  } else if (DISABLE_AUTO_NGROK) {
+    console.log('Auto-ngrok disabled by DISABLE_AUTO_NGROK=1');
   }
 });
