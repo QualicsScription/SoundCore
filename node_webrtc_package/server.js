@@ -1,10 +1,9 @@
 /*
   Minimal Express + Socket.IO signaling server for voice chat rooms
-  Domain: https://hyena-close-purely.ngrok-free.app/
+  Domain: intended to be exposed via ngrok CLI using your reserved domain.
   Notes:
   - Run locally: PORT=3000 node server.js
-  - ngrok tunnel is started automatically if NGROK_AUTHTOKEN and NGROK_DOMAIN are provided in .env
-  - To disable auto-ngrok (when using CLI ngrok), set DISABLE_AUTO_NGROK=1
+  - The ngrok tunnel is started by scripts/start.(bat|sh). This file no longer auto-starts ngrok.
 */
 
 const express = require('express');
@@ -15,15 +14,11 @@ const compression = require('compression');
 const helmet = require('helmet');
 const { Server } = require('socket.io');
 const dotenv = require('dotenv');
-const ngrok = require('ngrok');
 
 dotenv.config();
 
 const PORT = process.env.PORT || 3000;
 const HOST = process.env.HOST || '0.0.0.0';
-const NGROK_TOKEN = process.env.NGROK_AUTHTOKEN;
-const NGROK_DOMAIN = process.env.NGROK_DOMAIN || 'hyena-close-purely.ngrok-free.app';
-const DISABLE_AUTO_NGROK = process.env.DISABLE_AUTO_NGROK === '1';
 
 const app = express();
 app.use(helmet());
@@ -97,22 +92,7 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, HOST, async () => {
+server.listen(PORT, HOST, () => {
   console.log(`Signaling server listening on http://${HOST}:${PORT}`);
-  if (!DISABLE_AUTO_NGROK && NGROK_TOKEN && NGROK_DOMAIN) {
-    try {
-      await ngrok.authtoken(NGROK_TOKEN);
-      const url = await ngrok.connect({
-        addr: PORT,
-        proto: 'http',
-        host_header: 'rewrite',
-        hostname: NGROK_DOMAIN,
-      });
-      console.log(`ngrok tunnel online at: ${url}`);
-    } catch (e) {
-      console.error('Failed to start ngrok tunnel automatically:', e);
-    }
-  } else if (DISABLE_AUTO_NGROK) {
-    console.log('Auto-ngrok disabled by DISABLE_AUTO_NGROK=1');
-  }
+  console.log('Use scripts/start.bat or start.sh to launch ngrok with your reserved domain.');
 });
