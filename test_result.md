@@ -107,15 +107,18 @@ user_problem_statement: "Build minimalist voice chat + text messaging (WebRTC + 
 backend:
   - task: "Add FastAPI WebSocket signaling at /api/ws with rooms and signaling messages (offer/answer/ice, text)"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/backend/server.py"
     stuck_count: 0
     priority: "high"
-    needs_retesting: true
+    needs_retesting: false
     status_history:
       - working: true
         agent: "main"
         comment: "Implemented WebSocket endpoint /api/ws with room/user management, broadcast, and signaling relay."
+      - working: true
+        agent: "testing"
+        comment: "✅ ALL TESTS PASSED: WebSocket signaling working correctly. Fixed WebSocket route registration issue (moved from api_router to main app). Tested: connection, room joining with peer notifications, offer/answer/ice-candidate exchange, text chat broadcasting, disconnect handling, and JSON validation. All 7 test scenarios passed successfully."
 
 frontend:
   - task: "React UI with join room, VU meters, mute, chat; connects to /api/ws via REACT_APP_BACKEND_URL"
