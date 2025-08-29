@@ -1,34 +1,79 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* Base styles for the Voice + Text WebRTC MVP */
+
+:root {
+  --bg: #0b1220;
+  --card: #0f172a;
+  --muted: #94a3b8;
+  --text: #e2e8f0;
+  --accent: #22d3ee;
+  --danger: #ef4444;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
+html, body, #root {
+  height: 100%;
+  background: radial-gradient(1200px 600px at 10% 0%, #0f172a 0%, #0b1220 50%, #0b1220 100%);
+  color: var(--text);
 }
 
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
+.card {
+  background: linear-gradient(135deg, rgba(34,211,238,0.06), rgba(59,130,246,0.06));
+  border: 1px solid rgba(148,163,184,0.15);
+  border-radius: 16px;
+  box-shadow: 0 10px 30px rgba(2,6,23,0.4);
 }
 
-.App-link {
-    color: #61dafb;
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(148,163,184,0.2);
+  color: var(--text);
+  background: rgba(15,23,42,0.6);
+  transition: all 0.15s ease;
+}
+.btn:hover { border-color: rgba(34,211,238,0.6); box-shadow: 0 8px 20px rgba(34,211,238,0.12); }
+.btn.primary { background: linear-gradient(135deg, rgba(34,211,238,0.2), rgba(59,130,246,0.2)); }
+.btn.danger { background: rgba(239,68,68,0.15); border-color: rgba(239,68,68,0.35); }
+
+.input {
+  background: rgba(15,23,42,0.6);
+  border: 1px solid rgba(148,163,184,0.2);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 10px 12px;
 }
 
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+.vu-bar {
+  height: 8px;
+  border-radius: 6px;
+  background: rgba(148,163,184,0.2);
+  overflow: hidden;
 }
+.vu-level {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #22d3ee, #34d399, #f59e0b, #ef4444);
+  transition: width 0.08s linear;
+}
+
+.badge {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(148,163,184,0.15);
+  border: 1px solid rgba(148,163,184,0.25);
+  font-size: 12px;
+}
+
+.chat {
+  height: 220px;
+  overflow-y: auto;
+  background: rgba(15,23,42,0.5);
+  border: 1px solid rgba(148,163,184,0.2);
+  border-radius: 12px;
+  padding: 10px;
+}
+.chat .msg { margin: 6px 0; }
+.chat .from { color: #7dd3fc; }
+.chat .time { color: var(--muted); font-size: 12px; }
