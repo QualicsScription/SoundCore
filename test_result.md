@@ -123,7 +123,7 @@ backend:
 frontend:
   - task: "React UI with join room, VU meters, mute, chat; connects to /api/ws via REACT_APP_BACKEND_URL"
     implemented: true
-    working: "NA"
+    working: true
     file: "/app/frontend/src/App.js"
     stuck_count: 0
     priority: "high"
