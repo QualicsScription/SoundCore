@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Hyena Voice + Chat</title>
+  <link rel="manifest" href="./manifest.json" />
+  <meta name="theme-color" content="#0b1220" />
+  <link rel="stylesheet" href="./style.css" />
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Hyena Voice + Chat</h1>
+      <span class="badge">WebRTC • Socket.IO</span>
+    </header>
+
+    <section class="controls">
+      <input id="room" placeholder="Room name" value="demo" />
+      <input id="name" placeholder="Your name (optional)" />
+      <button id="joinBtn" class="btn primary">Join Room</button>
+      <button id="leaveBtn" class="btn danger" disabled>Leave</button>
+      <button id="muteBtn" class="btn">Mute Mic</button>
+    </section>
+
+    <section class="grid">
+      <div class="card">
+        <h2>Participants</h2>
+        <div id="peers"></div>
+      </div>
+      <div class="card">
+        <h2>Text Chat</h2>
+        <div id="chat" class="chat"></div>
+        <div class="chat-input">
+          <input id="msg" placeholder="Message..." />
+          <button id="sendBtn" class="btn">Send</button>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script src="https://hyena-close-purely.ngrok-free.app/socket.io/socket.io.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>

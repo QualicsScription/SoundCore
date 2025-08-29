@@ -1,0 +1,9 @@
+{
+  "name": "Hyena Voice + Chat",
+  "short_name": "HyenaChat",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0b1220",
+  "theme_color": "#0b1220",
+  "icons": []
+}
