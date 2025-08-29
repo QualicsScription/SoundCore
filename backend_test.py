@@ -30,6 +30,10 @@ def get_backend_url():
         return None
     return None
 
+# Get local backend URL for testing
+def get_local_backend_url():
+    return "ws://localhost:8001/api/ws"
+
 class WebSocketTestClient:
     def __init__(self, name, ws_url):
         self.name = name
