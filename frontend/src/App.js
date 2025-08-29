@@ -3,7 +3,10 @@ import './App.css';
 
 // Helper: build WS URL from REACT_APP_BACKEND_URL without hardcoding
 function getBackendBase() {
-  return (import.meta?.env?.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+  const raw = (import.meta?.env?.REACT_APP_BACKEND_URL || process.env.REACT_APP_BACKEND_URL || '').replace(/\/$/, '');
+  if (!raw) return '';
+  // Ensure '/api' prefix per ingress rules
+  return raw.endsWith('/api') ? raw : `${raw}/api`;
 }
 function buildWsUrl() {
   const base = getBackendBase();
