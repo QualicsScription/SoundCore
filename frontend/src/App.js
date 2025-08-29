@@ -29,6 +29,7 @@ function App() {
   const [msgText, setMsgText] = useState('');
   const [muted, setMuted] = useState(false);
   const [iceServers, setIceServers] = useState(defaultIce);
+  const [listenOnly, setListenOnly] = useState(false);
 
   const wsRef = useRef(null);
   const pcMapRef = useRef(new Map()); // peerId -> RTCPeerConnection
@@ -41,7 +42,7 @@ function App() {
   const backendBase = useMemo(() => getBackendBase(), []);
 
   useEffect(() => {
-    // Try to fetch ICE servers from backend /api/ice
+    // Try to fetch ICE servers from backend /api/ice (will return STUN only if TURN not set)
     const fetchIce = async () => {
       if (!backendBase) return;
       try {
@@ -98,7 +99,7 @@ function App() {
     const pc = new RTCPeerConnection({ iceServers });
     pcMapRef.current.set(peerId, pc);
 
-    // Local tracks
+    // Local tracks (only if we have a stream; listen-only won't add tracks)
     localStreamRef.current?.getTracks().forEach((t) => pc.addTrack(t, localStreamRef.current));
 
     pc.onicecandidate = (e) => {
@@ -144,7 +145,7 @@ function App() {
     const msg = JSON.parse(ev.data);
     if (msg.type === 'joined') {
       setSelfId(msg.selfId);
-      // Add self participant shell
+      // Add self participant shell (show even in listen-only)
       setParticipants((prev) => ({ ...prev, [msg.selfId]: { name: name || 'Me', level: 0 } }));
       // Create offers to existing peers
       for (const p of msg.peers || []) {
@@ -185,24 +186,40 @@ function App() {
       alert('Backend URL not configured. Please set REACT_APP_BACKEND_URL.');
       return;
     }
+    let gotStream = false;
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 }, video: false });
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: {
+          echoCancellation: true,
+          noiseSuppression: true,
+          autoGainControl: true,
+          sampleRate: 48000,
+          channelCount: 1
+        },
+        video: false
+      });
+      gotStream = true;
       localStreamRef.current = stream;
       startLocalMeter(stream);
-
-      const ws = new WebSocket(wsUrl);
-      wsRef.current = ws;
-      ws.onopen = () => {
-        ws.send(JSON.stringify({ type: 'join', room, name: name || undefined }));
-      };
-      ws.onmessage = handleWsMessage;
-      ws.onclose = () => {
-        setJoined(false);
-      };
     } catch (e) {
-      console.error(e);
-      alert('Microphone permission is required.');
+      // Listen-only fallback
+      setListenOnly(true);
+      console.warn('Mic denied or unavailable. Joining in listen-only mode.');
     }
+
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
+    ws.onopen = () => {
+      ws.send(JSON.stringify({ type: 'join', room, name: name || undefined }));
+    };
+    ws.onmessage = handleWsMessage;
+    ws.onclose = () => {
+      setJoined(false);
+      if (gotStream && localStreamRef.current) {
+        localStreamRef.current.getTracks().forEach((t) => t.stop());
+        localStreamRef.current = null;
+      }
+    };
   }, [handleWsMessage, name, room, wsUrl]);
 
   const leaveRoom = useCallback(() => {
@@ -216,6 +233,7 @@ function App() {
     setMessages([]);
     setSelfId(null);
     setJoined(false);
+    setListenOnly(false);
     stopLevelsLoop();
     localStreamRef.current?.getTracks().forEach((t) => t.stop());
     localStreamRef.current = null;
@@ -248,7 +266,7 @@ function App() {
       <div className="max-w-5xl mx-auto space-y-6">
         <header className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold tracking-tight">Ultra-low-latency Voice + Chat</h1>
-          <div className="badge">WebRTC + WS</div>
+          <div className="badge">WebRTC + WS{listenOnly ? ' • Listen-only' : ''}</div>
         </header>
 
         <section className="card p-4">
@@ -260,7 +278,7 @@ function App() {
             ) : (
               <button className="btn danger md:col-span-1" onClick={leaveRoom}>Leave</button>
             )}
-            <button className="btn md:col-span-1" onClick={toggleMute}>{muted ? 'Unmute Mic' : 'Mute Mic'}</button>
+            <button className="btn md:col-span-1" onClick={toggleMute} disabled={listenOnly}>{muted ? 'Unmute Mic' : 'Mute Mic'}</button>
           </div>
         </section>
 

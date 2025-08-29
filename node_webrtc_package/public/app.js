@@ -9,9 +9,10 @@
   const msgEl = document.getElementById('msg');
   const sendBtn = document.getElementById('sendBtn');
 
-  const socket = io('https://hyena-close-purely.ngrok-free.app', { transports: ['websocket'], reconnection: true });
+  const signalUrl = (window.__SIGNAL_URL || 'https://hyena-close-purely.ngrok-free.app');
+  const socket = io(signalUrl, { transports: ['websocket'], reconnection: true });
 
-  const iceServers = [{ urls: ['stun:stun.l.google.com:19302', 'stun:global.stun.twilio.com:3478'] }];
+  const iceServers = (window.__ICE || [{ urls: ['stun:stun.l.google.com:19302', 'stun:global.stun.twilio.com:3478'] }]);
   const pcMap = new Map();
   const audioEls = new Map();
   let localStream = null;
@@ -45,7 +46,13 @@
 
   async function ensureLocalStream(){
     if (localStream) return localStream;
-    localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1 }, video: false });
+    try {
+      localStream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation:true, noiseSuppression:true, autoGainControl:true, sampleRate: 48000, channelCount:1 }, video: false });
+    } catch (e) {
+      // listen-only fallback
+      console.warn('Mic denied/unavailable. Proceeding listen-only.');
+      return null;
+    }
 
     // Local VU meter
     try {
@@ -74,7 +81,7 @@
     pcMap.set(peerId, pc);
 
     ensureLocalStream().then(stream => {
-      stream.getTracks().forEach(t => pc.addTrack(t, stream));
+      if (stream) stream.getTracks().forEach(t => pc.addTrack(t, stream));
     });
 
     pc.onicecandidate = (e) => {
@@ -160,10 +167,8 @@
     const room = roomEl.value.trim();
     displayName = nameEl.value.trim();
     if (!room) return alert('Enter a room name');
-    try {
-      await ensureLocalStream();
-      socket.emit('join', { room, name: displayName || undefined });
-    } catch (e) { alert('Microphone permission is required.'); }
+    try { await ensureLocalStream(); } catch {}
+    socket.emit('join', { room, name: displayName || undefined });
   };
 
   leaveBtn.onclick = () => {
@@ -189,7 +194,6 @@
   };
   msgEl.addEventListener('keydown', (e) => { if (e.key === 'Enter') sendBtn.onclick(); });
 
-  // PWA service worker
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
       navigator.serviceWorker.register('./service-worker.js').catch(() => {});

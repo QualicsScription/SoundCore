@@ -3,7 +3,7 @@
   Domain: https://hyena-close-purely.ngrok-free.app/
   Notes:
   - Run locally: PORT=3000 node server.js
-  - Expose via ngrok: ngrok http 3000 and map your domain accordingly
+  - ngrok tunnel is started automatically if NGROK_AUTHTOKEN and NGROK_DOMAIN are provided in .env
 */
 
 const express = require('express');
@@ -13,16 +13,21 @@ const cors = require('cors');
 const compression = require('compression');
 const helmet = require('helmet');
 const { Server } = require('socket.io');
+const dotenv = require('dotenv');
+const ngrok = require('ngrok');
+
+dotenv.config();
+
+const PORT = process.env.PORT || 3000;
+const HOST = process.env.HOST || '0.0.0.0';
+const NGROK_TOKEN = process.env.NGROK_AUTHTOKEN;
+const NGROK_DOMAIN = process.env.NGROK_DOMAIN || 'hyena-close-purely.ngrok-free.app';
 
 const app = express();
 app.use(helmet());
 app.use(compression());
 app.use(cors({
-  origin: [
-    'https://hyena-close-purely.ngrok-free.app',
-    'http://localhost:3000',
-    'http://127.0.0.1:3000'
-  ],
+  origin: (process.env.CORS_ORIGINS || 'https://hyena-close-purely.ngrok-free.app,http://localhost:3000,http://127.0.0.1:3000').split(','),
   credentials: true
 }));
 
@@ -32,11 +37,7 @@ app.use(express.static(path.join(__dirname, 'public')));
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: [
-      'https://hyena-close-purely.ngrok-free.app',
-      'http://localhost:3000',
-      'http://127.0.0.1:3000'
-    ],
+    origin: (process.env.CORS_ORIGINS || 'https://hyena-close-purely.ngrok-free.app,http://localhost:3000,http://127.0.0.1:3000').split(','),
     methods: ['GET', 'POST']
   }
 });
@@ -63,9 +64,7 @@ io.on('connection', (socket) => {
     r.set(socket.id, { name: displayName });
     socket.join(joinedRoom);
 
-    // Send existing peers to the new socket
     socket.emit('joined', { selfId: socket.id, peers: getPeers(joinedRoom, socket.id) });
-    // Notify others about new peer
     socket.to(joinedRoom).emit('new-peer', { id: socket.id, name: displayName });
   });
 
@@ -96,7 +95,21 @@ io.on('connection', (socket) => {
   });
 });
 
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`Signaling server listening on http://0.0.0.0:${PORT}`);
+server.listen(PORT, HOST, async () => {
+  console.log(`Signaling server listening on http://${HOST}:${PORT}`);
+  // Auto-start ngrok tunnel if token provided
+  if (NGROK_TOKEN && NGROK_DOMAIN) {
+    try {
+      await ngrok.authtoken(NGROK_TOKEN);
+      const url = await ngrok.connect({
+        addr: PORT,
+        proto: 'http',
+        host_header: 'rewrite',
+        hostname: NGROK_DOMAIN,
+      });
+      console.log(`ngrok tunnel online at: ${url}`);
+    } catch (e) {
+      console.error('Failed to start ngrok tunnel automatically:', e);
+    }
+  }
 });
