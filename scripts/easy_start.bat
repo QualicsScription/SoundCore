@@ -16,15 +16,22 @@ if exist "..\backend\.env" (
 )
 
 echo.
-echo Node package quickstart:
-echo   cd ..\node_webrtc_package
-echo   copy .env.example .env
-echo   copy public\config.example.js public\config.js
-echo   yarn install
-echo   set PORT=3000 && node server.js
+echo Starting Node.js signaling server with ngrok on your domain...
 
-echo Expose with ngrok on your machine:
-echo   ngrok http --domain=hyena-close-purely.ngrok-free.app 3000
+if exist "..\node_webrtc_package" (
+  pushd "..\node_webrtc_package"
+  if not exist ".env" (
+    copy .env.example .env >nul
+  )
+  if not exist "public\config.js" (
+    copy public\config.example.js public\config.js >nul
+  )
+  call scripts\setup.bat
+  call scripts\start.bat
+  popd
+) else (
+  echo ERROR: ..\node_webrtc_package folder not found.
+)
 
 echo.
 echo For details, open ..\scripts\easy_start.md
