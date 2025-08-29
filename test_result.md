@@ -129,6 +129,10 @@ frontend:
     priority: "high"
     needs_retesting: true
     status_history:
+      - working: false
+        agent: "main"
+        comment: "Added listen-only fallback for frontend automated testing and updated audio constraints to include sampleRate:48000 and channelCount:1. Requesting automated frontend tests now (Option A)."
+    status_history:
       - working: true
         agent: "main"
         comment: "Implemented functional UI with WebRTC mesh and chat, deriving ws URL from env (no hardcoding)."
